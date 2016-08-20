@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="UserDetails.css">
+        <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+    </head>
+    
+    <body>
+        <fieldset>
+            <legend>User details</legend>
+            <div>
+                <div>
+                   <label>Name:</label>
+                    <input class="border" id="nameId" placeholder="Type name...">
+                </div>
+                </br>
+                <div>
+                    <label>Surname:</label>
+                    <input class="border" id="surnameId" placeholder="Type surname...">
+                </div>
+                </br>
+                <div>
+                    <label>Id no:</label>
+                    <input class="border" id="idNoId" placeholder="Type id no...">
+                </div>
+                </br>
+                <div>
+                    <label>Dob:</label>
+                    <input class="border" id="dobId" placeholder="Type date of birth...">
+                </div>
+                </br>
+                <div>
+                    <button type="button" id="btnPostId">Save details</button>
+                    <label id="statusId" class="status">Status: Waiting for input</label>
+                </div></br>
+                <div>
+                    <button type="button" id="btnCancelId">Cancel</button>
+                </div>
+            </div>
+        </fieldset>
+    </body>
+</html>
+
+<script>
+    function DobMatchId(dob, id) {
+        dobEx = /^(\d{1,2})\/(\d{1,2})\/\d{2}(\d{2})$/;
+        dobResult = dobEx.exec(dob);
+        idEx = /^(\d{2})(\d{2})(\d{2})\d{7}$/;
+        idResult = idEx.exec(id);
+        var dobArgs = {
+            dd : parseInt(dobResult[1]),
+            mm : parseInt(dobResult[2]),
+            yy : parseInt(dobResult[3])
+        };
+        var idArgs = {
+            dd : parseInt(idResult[3]),
+            mm : parseInt(idResult[2]),
+            yy : parseInt(idResult[1])
+        };
+        return (
+            dobArgs.dd === idArgs.dd &&
+            dobArgs.mm === idArgs.mm &&
+            dobArgs.yy === idArgs.yy
+        );
+    }
+    
+    function IsValidId(id) {
+        ex = /^\d{13}$/;
+        return  ex.test(id);
+    }
+
+    var daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    
+    function IsValidDob(date) {
+        ex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+        if(ex.test(date) == true) {
+            let result = ex.exec(date);
+            let day = parseInt(result[1]);
+            let month = parseInt(result[2]);
+            let year = parseInt(result[3]);
+            
+            if(month < 1 || month > 12) {
+                return false;
+            }
+            
+            if(year % 400 === 0 || (year % 100 !== 0 && year % 4 ===0)) {
+                daysInMonth[1] = 29;
+            }
+            return day > 0 && day <= daysInMonth[month - 1];
+        } else {
+            return false;
+        }
+    }
+    
+    function IsValidName(name) {
+        return name !== null && name !== "";
+    }
+    
+    function IsValidSurname(surname) {
+        return surname !== null && surname !== "";
+    }
+    
+    function GetFields() {
+        var fields = {
+            name : document.getElementById('nameId').value,
+            surname : document.getElementById('surnameId').value,
+            dob : document.getElementById('dobId').value,
+            id : document.getElementById('idNoId').value
+        };
+        return fields;
+    }
+
+    function InvalidateField(id, message) {
+        var elem = document.getElementById(id);
+        elem.value = "";
+        elem.className = 'border-error';
+        elem.placeholder = message;
+    }
+    
+    function InvalidateFields(name, surname, dob, id) {
+        if(name === false) {
+            InvalidateField('nameId', 'Invalid name...');
+        }
+        if(surname === false) {
+            InvalidateField('surnameId', 'Invalid surname...');
+        }
+        if(dob === false) {
+            InvalidateField('dobId', 'Invalid date of birth...');
+        }
+        if(id === false) {
+            InvalidateField('idNoId', 'Invalid id number...');
+        }
+    }
+    
+    function SetStatus(statusText) {
+        document.getElementById('statusId').innerHTML = 'Status: ' + statusText;
+    }
+
+    function BtnOnPost() {
+        var fields = GetFields();
+        var valid = {
+            name : IsValidName(fields.name),
+            surname : IsValidSurname(fields.surname),
+            dob : IsValidDob(fields.dob),
+            id : IsValidId(fields.id)
+        };
+        //if(valid.dob === true && valid.id === true) {
+        //    var dobMatchId = DobMatchId(fields.dob, fields.id);
+        //}
+        if(valid.name === true &&
+           valid.surname === true &&
+           valid.dob === true &&
+           valid.id === true) {
+            document.getElementById('btnPostId').disabled = true;
+            SetStatus('Saving user details...');
+            $.ajax({
+                type: "POST",
+                url : "http://localhost:8192/",
+                contentType : "application/json; charset=utf-8",
+                dataType : "json",
+                data : JSON.stringify(fields),
+                success : function(data) {
+                    document.getElementById('btnPostId').disabled = false;
+                    switch(data.code) {
+                        case 0 :
+                            SetStatus('Saved user details');
+                            break;
+
+                        case 1 :
+                            InvalidateField('idNoId', 'Id already exists...');
+                            SetStatus('Duplicate id number');
+                            break;
+                            
+                        case 2 :
+                            SetStatus(data.text);
+                            break;
+                        
+                        case 3 :
+                            SetStatus(data.text);
+                            break;
+                            
+                        case 4 :
+                            SetStatus(data.text);
+                            break;
+                    }
+                },
+                error : function(request, status, error) {
+                    document.getElementById('btnPostId').disabled = false;
+                }
+            });
+        } else {
+            InvalidateFields(valid.name, valid.surname, valid.dob, valid.id);
+            SetStatus('One or more invalid fields!');
+        }
+        
+    }
+    
+    function BtnOnCancel() {
+    }
+    
+    function OnFocus(id) {
+        var elem = document.getElementById(id);
+        elem.className = 'border';
+        elem.placeholder = elem.data.placeholder;
+    }
+    
+    
+    function InputInit(id, data) {
+        var elem = document.getElementById(id);
+        elem.data = data;
+        elem.data.placeholder = elem.placeholder;
+        elem.addEventListener('focus', OnFocus.bind(null, id));
+    }
+    
+    $(document).ready(function() {
+        InputInit('nameId', { placeholder : null } );
+        InputInit('surnameId', { placeholder : null } );
+        InputInit('dobId', { placeholder : null } );
+        InputInit('idNoId', { placeholder : null } );
+        
+        document.getElementById('btnPostId').addEventListener('click', BtnOnPost);
+        document.getElementById('btnCancelId').addEventListener('click', BtnOnCancel);
+    });
+</script>

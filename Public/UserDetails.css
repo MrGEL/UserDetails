@@ -1,0 +1,42 @@
+input.border:focus {
+    margin-left: 5px;
+    margin-top: 5px;
+    position: absolute;
+    left: 200px;
+    border-color: #9ECAED;
+    outline: none;
+    box-shadow: 0 0 10px #9ECAED;
+}
+
+input.border {
+    margin-left: 5px;
+    margin-top: 5px;
+    position: absolute;
+    left: 200px;
+    border: 2px solid #dadada;
+    border-radius: 7px;
+}
+
+label.status {
+    margin-left: 5px;
+    margin-top: 5px;
+    position: absolute;
+    left: 200px;
+    border: 2px solid #dadada;
+    border-radius: 7px;
+    border-color: #FFFF00;
+    outline: none;
+    box-shadow: 0 0 10px #FFFF00;
+}
+
+input.border-error {
+    margin-left: 5px;
+    margin-top: 5px;
+    position: absolute;
+    left: 200px;
+    border: 2px solid #dadada;
+    border-radius: 7px;
+    border-color: #ED0000;
+    outline: none;
+    box-shadow: 0 0 10px #ED0000;
+}
