@@ -32,7 +32,7 @@ var RESULT = [
 
 function OnPostAddUserDetails(userDetails, response) {
     if(mongoDb !== null) {
-        let collection = mongoDb.collection('UserDetails');
+        var collection = mongoDb.collection('UserDetails');
         if(collection !== null) {
             collection.findOne({id:userDetails.id}, function(error, row) {
                 if(row !== null) {
@@ -70,7 +70,7 @@ app.post('/', function(request, response) {
     debugger;
     var userDetails = request.body;
     if(ValidateObj(userDetails, 4) === false) {
-        let jsonObj = BuildResponse(userDetails, 'Invalid JSON data');
+        var jsonObj = BuildResponse(userDetails, 'Invalid JSON data');
         res.send(JSON.stringify(jsonObj));
     }
     else {
